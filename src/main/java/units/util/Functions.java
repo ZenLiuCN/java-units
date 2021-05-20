@@ -97,6 +97,22 @@ public interface Functions {
         default Predicate<C> closure(A a, B b) {
             return c -> test(a, b, c);
         }
+
+        default TriplePredicate<A, B, C> negate() {
+            return (a, b, c) -> !test(a, b, c);
+        }
+    }
+
+    static <A> Predicate<A> not(Predicate<A> p) {
+        return p.negate();
+    }
+
+    static <A, B> BiPredicate<A, B> not(BiPredicate<A, B> p) {
+        return p.negate();
+    }
+
+    static <A, B, C> TriplePredicate<A, B, C> not(TriplePredicate<A, B, C> p) {
+        return p.negate();
     }
 
 }
