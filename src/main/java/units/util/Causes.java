@@ -1,9 +1,12 @@
-package unit.util;
+package units.util;
 
 import lombok.SneakyThrows;
 import lombok.val;
+import lombok.var;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiFunction;
 
 /**
@@ -37,5 +40,22 @@ public interface Causes {
     static <R extends Throwable> void sneakyThrow(BiFunction<String, Throwable, R> ctor, String pattern, Object... args) {
         val f = MessageFormatter.format(pattern, args);
         throw ctor.apply(f.getMessage(), f.getThrowable());
+    }
+
+
+    /**
+     * convert a Throwable into a list of Throwable
+     *
+     * @param throwable source
+     * @return a List
+     */
+    static List<Throwable> flatten(Throwable throwable) {
+        val list = new ArrayList<Throwable>();
+        var cause = throwable;
+        while (cause != null && !list.contains(cause)) {
+            list.add(cause);
+            cause = cause.getCause();
+        }
+        return list;
     }
 }
