@@ -7,6 +7,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+/**
+ * @author Zen.Liu
+ * @apiNote
+ * @since 2021-05-21
+ */
 
 public interface Monad<S extends Monad<S, T>, T> extends Supplier<T> {
     <R> Monad<?, R> with(R value);
