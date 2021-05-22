@@ -31,21 +31,33 @@ public interface Errors {
     @Accessors(fluent = false)
     abstract class CommonError extends RuntimeException {
         @Getter final int code;
-        @Getter final int notify;
-        @Getter final String notification;
+        @Getter final int notifier;
+        @Getter final String notify;
 
         protected CommonError(String message,
                               Throwable cause,
                               boolean enableSuppression,
                               boolean writableStackTrace,
                               Integer code,
-                              Integer notify,
-                              String notification
+                              Integer notifier,
+                              String notify
         ) {
             super(message, cause, enableSuppression, writableStackTrace);
             this.code = Numbers.nullThenInt(code, DEFAULT_CODE.get());
-            this.notify = Numbers.nullThenInt(notify, DEFAULT_NOTIFY_TYPE.get());
-            this.notification = Strings.nullThenEmpty(notification);
+            this.notifier = Numbers.nullThenInt(notifier, DEFAULT_NOTIFY_TYPE.get());
+            this.notify = Strings.nullThenEmpty(notify);
+        }
+
+        protected CommonError(CommonErrorBuilder<?, ?> b) {
+            this(
+                b.message,
+                b.cause,
+                b.enableSuppression,
+                b.writableStackTrace,
+                b.code,
+                b.notifier,
+                b.notify
+            );
         }
 
         public static abstract class CommonErrorBuilder<C extends CommonError, B extends CommonErrorBuilder<C, B>> {
@@ -54,8 +66,8 @@ public interface Errors {
             boolean enableSuppression;
             boolean writableStackTrace;
             Integer code;
-            Integer notify;
-            String notification;
+            Integer notifier;
+            String notify;
 
             public B cause(Throwable cause) {
                 this.cause = cause;
@@ -73,13 +85,13 @@ public interface Errors {
             }
 
             public B notification(Integer type, String message) {
-                this.notification = message;
-                this.notify = type;
+                this.notify = message;
+                this.notifier = type;
                 return self();
             }
 
             public B notification(String message) {
-                this.notification = message;
+                this.notify = message;
                 return self();
             }
 
@@ -91,8 +103,8 @@ public interface Errors {
 
             public B messageAndNotify(Integer type, String message) {
                 this.message = message;
-                this.notification = message;
-                this.notify = type;
+                this.notify = message;
+                this.notifier = type;
                 return self();
             }
 
@@ -106,9 +118,9 @@ public interface Errors {
 
             public B messageAndNotify(Integer type, String template, Object... args) {
                 val msg = MessageFormatter.arrayFormat(template, args);
-                this.notification = msg.getMessage();
+                this.notify = msg.getMessage();
                 this.message = msg.getMessage();
-                this.notify = type;
+                this.notifier = type;
                 if (msg.getThrowable() != null) {
                     this.cause = msg.getThrowable();
                 }
@@ -117,8 +129,8 @@ public interface Errors {
 
             public B notify(Integer type, String template, Object... args) {
                 val msg = MessageFormatter.arrayFormat(template, args);
-                this.notification = msg.getMessage();
-                this.notify = type;
+                this.notify = msg.getMessage();
+                this.notifier = type;
                 if (msg.getThrowable() != null) {
                     this.cause = msg.getThrowable();
                 }
@@ -153,7 +165,7 @@ public interface Errors {
                     ", message=" + this.message +
                     ", code=" + this.code +
                     ", alertType=" + this.notify +
-                    ", alert=" + this.notification + ")";
+                    ", alert=" + this.notify + ")";
             }
         }
 
@@ -171,6 +183,7 @@ public interface Errors {
 
     @SuperBuilder
     final class InternalError extends CommonError {
+
         public static InternalError message(String pattern, Object... args) {
             return buildMessage(builder().code(DEFAULT_CODE.get()), pattern, args);
         }
@@ -376,6 +389,7 @@ public interface Errors {
         return NotAllowedError.notify(null, pattern, args);
     }
 
+
     static ForbiddenError forbidden(String pattern, Object... args) {
         return ForbiddenError.message(pattern, args);
     }
@@ -386,6 +400,18 @@ public interface Errors {
 
     static ForbiddenError forbiddenNotify(String pattern, Object... args) {
         return ForbiddenError.notify(null, pattern, args);
+    }
+
+    static InternalError internal(String pattern, Object... args) {
+        return InternalError.message(pattern, args);
+    }
+
+    static InternalError internalNotify(Integer type, String pattern, Object... args) {
+        return InternalError.notify(type, pattern, args);
+    }
+
+    static InternalError internalNotify(String pattern, Object... args) {
+        return InternalError.notify(null, pattern, args);
     }
 
 }
